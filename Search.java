@@ -192,7 +192,7 @@ public class Search {
         for (int i = 0; i < length1; i++) {
             d.doMove(move[i]);
         }
-        boolean isSolved = d.ul == 0x011233 && d.ur == 455677 && d.dl == 0x998bba && d.dr == 0xddcffe && d.ml == 0;
+        boolean isSolved = d.ul == 0x011233 && d.ur == 0x455677 && d.dl == 0x998bba && d.dr == 0xddcffe && d.ml == 0;
         if (isSolved) {
             sol_string = move2string(length1);
         }
