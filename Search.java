@@ -60,7 +60,7 @@ public class Search {
             int prunx = Shape.ShapePrunOpt[shapex];
             if (prunx < maxl) {
                 move[depth] = 0;
-                if (phase1(shapex, prunx, maxl - 1, depth + 1, 0)) {
+                if (phase1Opt(shapex, prunx, maxl - 1, depth + 1, 0)) {
                     return true;
                 }
             }
@@ -73,7 +73,7 @@ public class Search {
             while (true) {
                 m += Shape.TopMove[shapex];
                 shapex = m >> 4;
-                m &= 0x0f;
+                m &= 0xf;
                 if (m >= 12) {
                     break;
                 }
@@ -84,7 +84,7 @@ public class Search {
                     continue;
                 }
                 move[depth] = m;
-                if (phase1(shapex, prunx, maxl - 1, depth + 1, 1)) {
+                if (phase1Opt(shapex, prunx, maxl - 1, depth + 1, 1)) {
                     return true;
                 }
             }
@@ -97,8 +97,8 @@ public class Search {
             while (true) {
                 m += Shape.BottomMove[shapex];
                 shapex = m >> 4;
-                m &= 0x0f;
-                if (m >= 6) {
+                m &= 0xf;
+                if (m >= 12) {
                     break;
                 }
                 int prunx = Shape.ShapePrunOpt[shapex];
@@ -106,7 +106,7 @@ public class Search {
                     break;
                 } else if (prunx < maxl) {
                     move[depth] = -m;
-                    if (phase1(shapex, prunx, maxl - 1, depth + 1, 2)) {
+                    if (phase1Opt(shapex, prunx, maxl - 1, depth + 1, 2)) {
                         return true;
                     }
                 }
@@ -142,7 +142,7 @@ public class Search {
             while (true) {
                 m += Shape.TopMove[shapex];
                 shapex = m >> 4;
-                m &= 0x0f;
+                m &= 0xf;
                 if (m >= 12) {
                     break;
                 }
@@ -165,7 +165,7 @@ public class Search {
             while (true) {
                 m += Shape.BottomMove[shapex];
                 shapex = m >> 4;
-                m &= 0x0f;
+                m &= 0xf;
                 if (m >= 6) {
                     break;
                 }

@@ -164,6 +164,13 @@ public class FullCube implements Comparable<FullCube> {
         return p;
     }
 
+    boolean isTwistable() {
+        return pieceAt(0) != pieceAt(11)
+               && pieceAt(5) != pieceAt(6)
+               && pieceAt(12) != pieceAt(23)
+               && pieceAt(17) != pieceAt(18);
+    }
+
     int getShapeIdx() {
         int urx = ur & 0x111111;
         urx |= urx >> 3;
