@@ -10,8 +10,8 @@ class Shape {
                              };
 
     static int[] ShapeIdx = new int[3678];
-    static int[] ShapePrun = new int[3768 * 2];
-    static int[] ShapePrunOpt = new int[3768 * 2];
+    static int[] ShapePrun = new int[3678 * 2];
+    static int[] ShapePrunOpt = new int[3678 * 2];
 
     static int[] TopMove = new int[3678 * 2];
     static int[] BottomMove = new int[3678 * 2];
@@ -90,6 +90,68 @@ class Shape {
 
     static boolean inited = false;
 
+    static void initPruning(int[] Prun, int done, int metric) {
+        int done0 = 0;
+        int depth = -1;
+        while (done != done0) {
+            done0 = done;
+            ++depth;
+            System.out.println(String.format("%2d%6d", depth, done));
+            for (int i = 0; i < 3678 * 2; i++) {
+                if (Prun[i] != depth) {
+                    continue;
+                }
+                // try twist
+                {
+                    int idx = TwistMove[i];
+                    if (Prun[idx] == -1) {
+                        ++done;
+                        Prun[idx] = depth + 1;
+                    }
+                }
+
+                if (metric == Search.FACE_TURN_METRIC) {
+                    // try top move
+                    for (int m = 0, inc = 0, idx = i; m != 12; m += inc) {
+                        idx = TopMove[idx];
+                        inc = idx & 0xf;
+                        idx >>= 4;
+                        if (Prun[idx] == -1) {
+                            ++done;
+                            Prun[idx] = depth + 1;
+                        }
+                    }
+                    // try bottom
+                    for (int m = 0, inc = 0, idx = i; m != 12; m += inc) {
+                        idx = BottomMove[idx];
+                        inc = idx & 0xf;
+                        idx >>= 4;
+                        if (Prun[idx] == -1) {
+                            ++done;
+                            Prun[idx] = depth + 1;
+                        }
+                    }
+                } else if (metric == Search.WCA_TURN_METRIC) {
+                    // try top/bottom move
+                    for (int m = 0, inc = 0, idx = i; m != 12; m += inc) {
+                        idx = TopMove[idx];
+                        inc = idx & 0xf;
+                        idx >>= 4;
+                        for (int m2 = 0, inc2 = 0, idx2 = idx; m2 != 12; m2 += inc2) {
+                            idx2 = BottomMove[idx2];
+                            inc2 = idx2 & 0xf;
+                            idx2 >>= 4;
+                            if (Prun[idx2] == -1) {
+                                ++done;
+                                Prun[idx2] = depth + 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     static void init() {
         if (inited) {
             return;
@@ -105,7 +167,7 @@ class Shape {
                 ShapeIdx[count++] = value;
             }
         }
-        // System.out.println(count);
+        System.out.println(count);
         Shape s = new Shape();
         for (int i = 0; i < 3678 * 2; i++) {
             s.setIdx(i);
@@ -118,108 +180,18 @@ class Shape {
             s.twistMove();
             TwistMove[i] = s.getIdx();
         }
-        for (int i = 0; i < 3768 * 2; i++) {
+        for (int i = 0; i < 3678 * 2; i++) {
             ShapePrun[i] = -1;
             ShapePrunOpt[i] = -1;
         }
 
-        //0 110110110110 011011011011
-        //1 110110110110 110110110110
-        //1 011011011011 011011011011
-        //0 011011011011 110110110110
-        ShapePrun[getShape2Idx(0x0db66db)] = 0;
-        ShapePrun[getShape2Idx(0x1db6db6)] = 0;
-        ShapePrun[getShape2Idx(0x16db6db)] = 0;
-        ShapePrun[getShape2Idx(0x06dbdb6)] = 0;
+        ShapePrun[getShape2Idx(0x0db66db)] = 0; //0 110110110110 011011011011
+        ShapePrun[getShape2Idx(0x1db6db6)] = 0; //1 110110110110 110110110110
+        ShapePrun[getShape2Idx(0x16db6db)] = 0; //1 011011011011 011011011011
+        ShapePrun[getShape2Idx(0x06dbdb6)] = 0; //0 011011011011 110110110110
         ShapePrunOpt[new FullCube().getShapeIdx()] = 0;
-        int done = 4;
-        int done0 = 0;
-        int depth = -1;
-        while (done != done0) {
-            done0 = done;
-            ++depth;
-            // System.out.println(done);
-            for (int i = 0; i < 3768 * 2; i++) {
-                if (ShapePrun[i] == depth) {
-                    // try top
-                    int m = 0;
-                    int idx = i;
-                    do {
-                        idx = TopMove[idx];
-                        m += idx & 0xf;
-                        idx >>= 4;
-                        if (ShapePrun[idx] == -1) {
-                            ++done;
-                            ShapePrun[idx] = depth + 1;
-                        }
-                    } while (m != 12);
-
-                    // try bottom
-                    m = 0;
-                    idx = i;
-                    do {
-                        idx = BottomMove[idx];
-                        m += idx & 0xf;
-                        idx >>= 4;
-                        if (ShapePrun[idx] == -1) {
-                            ++done;
-                            ShapePrun[idx] = depth + 1;
-                        }
-                    } while (m != 12);
-
-                    // try twist
-                    idx = TwistMove[i];
-                    if (ShapePrun[idx] == -1) {
-                        ++done;
-                        ShapePrun[idx] = depth + 1;
-                    }
-                }
-            }
-        }
-        done = 1;
-        done0 = 0;
-        depth = -1;
-        while (done != done0) {
-            done0 = done;
-            ++depth;
-            // System.out.println(done);
-            for (int i = 0; i < 3768 * 2; i++) {
-                if (ShapePrunOpt[i] == depth) {
-                    // try top
-                    int m = 0;
-                    int idx = i;
-                    do {
-                        idx = TopMove[idx];
-                        m += idx & 0xf;
-                        idx >>= 4;
-                        if (ShapePrunOpt[idx] == -1) {
-                            ++done;
-                            ShapePrunOpt[idx] = depth + 1;
-                        }
-                    } while (m != 12);
-
-                    // try bottom
-                    m = 0;
-                    idx = i;
-                    do {
-                        idx = BottomMove[idx];
-                        m += idx & 0xf;
-                        idx >>= 4;
-                        if (ShapePrunOpt[idx] == -1) {
-                            ++done;
-                            ShapePrunOpt[idx] = depth + 1;
-                        }
-                    } while (m != 12);
-
-                    // try twist
-                    idx = TwistMove[i];
-                    if (ShapePrunOpt[idx] == -1) {
-                        ++done;
-                        ShapePrunOpt[idx] = depth + 1;
-                    }
-                }
-            }
-        }
+        initPruning(ShapePrun, 4, Search.FACE_TURN_METRIC);
+        initPruning(ShapePrunOpt, 1, Search.METRIC);
         inited = true;
     }
 

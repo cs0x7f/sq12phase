@@ -34,6 +34,10 @@ public class FullCube implements Comparable<FullCube> {
 
     }
 
+    boolean isSolved() {
+        return ul == 0x011233 && ur == 0x455677 && dl == 0x998bba && dr == 0xddcffe && ml == 0;
+    }
+
     static Random r = new Random();
     public static FullCube randomCube() {
         return randomCube(r);
@@ -162,13 +166,6 @@ public class FullCube implements Comparable<FullCube> {
             }
         }
         return p;
-    }
-
-    boolean isTwistable() {
-        return pieceAt(0) != pieceAt(11)
-               && pieceAt(5) != pieceAt(6)
-               && pieceAt(12) != pieceAt(23)
-               && pieceAt(17) != pieceAt(18);
     }
 
     int getShapeIdx() {

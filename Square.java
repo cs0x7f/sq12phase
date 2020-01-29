@@ -8,7 +8,6 @@ class Square {
     int ml;         //shape of middle layer (+/-1, or 0 if ignored)
 
     static byte[] SquarePrun = new byte[40320 * 2];         //pruning table; #twists to solve corner|edge permutation
-
     static char[] TwistMove = new char[40320];          //transition table for twists
     static char[] TopMove = new char[40320];            //transition table for top layer turns
     static char[] BottomMove = new char[40320];         //transition table for bottom layer turns
@@ -100,52 +99,47 @@ class Square {
             ++depth;
             OUT:
             for (int i = 0; i < 40320 * 2; i++) {
-                if (SquarePrun[i] == find) {
-                    int idx = i >> 1;
-                    int ml = i & 1;
+                if (SquarePrun[i] != find) {
+                    continue;
+                }
+                int perm = i >> 1;
+                int ml = i & 1;
 
-                    //try twist
-                    int idxx = TwistMove[idx] << 1 | (1 - ml);
-                    if (SquarePrun[idxx] == check) {
+                //try twist
+                int idx = TwistMove[perm] << 1 | (1 - ml);
+                if (SquarePrun[idx] == check) {
+                    ++done;
+                    SquarePrun[inv ? i : idx] = (byte) (depth);
+                    if (inv) {
+                        continue OUT;
+                    }
+                }
+                //try turning top layer
+                for (int m = 0; m < 4; m++) {
+                    perm = TopMove[perm];
+                    idx = perm << 1 | ml;
+                    if (SquarePrun[idx] == check) {
                         ++done;
-                        SquarePrun[inv ? i : idxx] = (byte) (depth);
+                        SquarePrun[inv ? i : idx] = (byte) (depth);
                         if (inv) {
                             continue OUT;
                         }
                     }
-
-                    //try turning top layer
-                    idxx = idx;
-                    for (int m = 0; m < 4; m++) {
-                        idxx = TopMove[idxx];
-                        if (SquarePrun[idxx << 1 | ml] == check) {
-                            ++done;
-                            SquarePrun[inv ? i : (idxx << 1 | ml)] = (byte) (depth);
-                            if (inv) {
-                                continue OUT;
-                            }
+                }
+                //try turning bottom layer
+                for (int m = 0; m < 4; m++) {
+                    perm = BottomMove[perm];
+                    if (SquarePrun[perm << 1 | ml] == check) {
+                        ++done;
+                        SquarePrun[inv ? i : (perm << 1 | ml)] = (byte) (depth);
+                        if (inv) {
+                            continue OUT;
                         }
                     }
-                    assert idxx == idx;
-                    //try turning bottom layer
-                    for (int m = 0; m < 4; m++) {
-                        idxx = BottomMove[idxx];
-                        if (SquarePrun[idxx << 1 | ml] == check) {
-                            ++done;
-                            SquarePrun[inv ? i : (idxx << 1 | ml)] = (byte) (depth);
-                            if (inv) {
-                                continue OUT;
-                            }
-                        }
-                    }
-
                 }
             }
-            // System.out.print(depth);
-            // System.out.print('\t');
-            // System.out.println(done);
+            System.out.println(String.format("%2d%6d", depth, done));
         }
         inited = true;
     }
-
 }
